@@ -34,69 +34,100 @@ void insertionSort(int arr[], int n) {
 	}
 }
 
-// Merge Sort
-void mergeSort(int arr[], int n) {
+// Merge Sort. Given an array and the length of the left and right halves.
+void mergeSort(int arr[], int l, int r) {
 
-	// Base case
-	if (n == 1) return;
-
-	int lenLeft = n/2;
-	int lenRight = n/2;
-
-	// If array length is odd the right half has an extra element.
-	if (n % 2 != 0) lenRight = n/2 + 1;
+	// Base case is when only one element is in the array so one or the other half is 0.
+	if (l == 0 || r == 0) return;
 
 	// Recursively split the array up
-	mergeSort(&arr[0], lenLeft);
-	mergeSort(&arr[lenLeft], lenRight);
-
-	/*printf("Presort left:");*/
-	/*for (int i = 0; i < lenLeft; i++) {*/
-	/*	printf(" %d", arr[i]);*/
-	/*}*/
-	/**/
-	/*printf("\nPresort right:");*/
-	/*for (int i = lenLeft; i < lenRight+lenLeft; i++) {*/
-	/*	printf(" %d", arr[i]);*/
-	/*}*/
-	/*printf("\n");*/
+	mergeSort(&arr[0], l/2, l - l/2); // l - l/2 is to take care of odd numbers easily.
+	mergeSort(&arr[l], r/2, r - r/2); // Start of the right half should be end at the index which is the number of left half elements
 
 	// Temporary array to store the sorted result of the left and right arrays.
-	int tmp[lenLeft+lenRight];
+	int tmp[l+r];
 
 	// Stores the indexes of the array halves
 	int indexSortedL = 0;
-	int indexSortedR = lenLeft;
+	int indexSortedR = l;
 
+	// To check if either half is empty
 	bool depletedR = false;
 	bool depletedL = false;
 
-	for (int i = 0; i < lenLeft+lenRight; i++) {
+	// Iterate through the entire tmp array and assign the lesser value between the left and right half
+	for (int i = 0; i < l+r; i++) {
 
+		// If the current left element is less than the current right element, or if the right array has been used up, go ahead and insert into tmp
 		if ((arr[indexSortedL] <= arr[indexSortedR] || depletedR == true) && !depletedL) {
 			tmp[i] = arr[indexSortedL];
 			indexSortedL++;
-			if (indexSortedL >= lenLeft) {
+
+			// If all the elements have been used up make the corresponding boolean true
+			if (indexSortedL >= l) {
 				depletedL = true;
-				indexSortedL = lenLeft-1; // To ensure no unsafe memory access
+				indexSortedL = l-1; // To ensure no unsafe memory access
 			}	
 		}
 
+		// If the current right element is less than the current left element, or if the left half has been used up, insert the right element into tmp
 		else if (arr[indexSortedR] < arr[indexSortedL] || depletedL == true) {
 			tmp[i] = arr[indexSortedR];
 			indexSortedR++;
-			if (indexSortedR >= lenRight+lenLeft) {
+
+			// If all the right elements have been used up make the corresponding boolean true
+			if (indexSortedR >= l+r) {
 				depletedR = true;
-				indexSortedR = lenRight+lenLeft-1;
+				indexSortedR = r+l-1; // To ensure no unsafe memory access
 			}
 		}
 	}
 
+	// Replace arr with tmp
 	memcpy(arr, tmp, sizeof(tmp));
-	/*printf("Current status: ");*/
-	/*for (int i = 0; i < n; i++) {*/
-	/*	printf(" %d", arr[i]);*/
-	/*}*/
-	/*printf("\n");*/
 }
 
+/*void heapSort(int arr[], int n) {*/
+/**/
+/*	// Keep going we've extracted all the elements*/
+/*	for (int i = n-1; i >= 0; i--) {*/
+/**/
+/*		// Make the entire thing a heap after each iteration*/
+/*		makeHeap(arr, n, 0);*/
+/**/
+/**/
+/*	}*/
+/*}*/
+/**/
+/*// To turn a small 3 element childs parent pair into a max heap*/
+/*void makeHeap(int arr[], int n, int curr) {*/
+/**/
+/*	// The root should be at 0 to start but we'll swap it to the largest element*/
+/*	int *root = &arr[curr];*/
+/**/
+/*	// Indexes for the children of the current node*/
+/*	int leftChildIndex = curr*2 + 1;*/
+/*	int rightChildIndex = curr*2 + 2;*/
+/**/
+/*	// Base case if children do not exist so bottom element*/
+/*	if (leftChildIndex >= n && rightChildIndex >= n) return;*/
+/**/
+/*	// See if a swap can be made if the left or right children are bigger*/
+/*	if (leftChildIndex < n && arr[leftChildIndex] > *root) {*/
+/*		swap(root, &arr[leftChildIndex]);*/
+/*		makeHeap(arr, n, leftChildIndex);*/
+/*	}*/
+/**/
+/*	if (rightChildIndex < n && arr[rightChildIndex] > *root) {*/
+/*		swap(root, &arr[rightChildIndex]);*/
+/*		makeHeap(arr, n, rightChildIndex);*/
+/*	}*/
+/**/
+/*	// Recursively reach the bottom of the heap*/
+/*	makeHeap(arr, n, leftChildIndex);*/
+/*	makeHeap(arr, n, rightChildIndex);*/
+/**/
+/*	// If we're back at the top it means that the heap was successfully made*/
+/*	// Now we can perform the step where we swap the initial and final value and reheap the entire thing*/
+/*}*/
+/**/
