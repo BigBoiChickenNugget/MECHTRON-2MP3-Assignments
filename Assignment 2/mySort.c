@@ -120,11 +120,11 @@ void countingSort(int arr[], int n) {
 	}
 
 	// Declare an array of counts with max elements
-	int *counts = malloc((fabs(min)+max+1)*sizeof(int));
+	int *counts = malloc((max+1)*sizeof(int));
 	for (int i = 0; i < n; i++) {
 
 		// Increment the number of counts for whatever element is in the array
-		counts[arr[i]+fabs(min)]++;
+		counts[arr[i]]++;
 	}
 
 	// Go through the array and put the number of counts in at each position
