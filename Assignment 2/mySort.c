@@ -87,47 +87,24 @@ void mergeSort(int arr[], int l, int r) {
 	memcpy(arr, tmp, sizeof(tmp));
 }
 
-/*void heapSort(int arr[], int n) {*/
-/**/
-/*	// Keep going we've extracted all the elements*/
-/*	for (int i = n-1; i >= 0; i--) {*/
-/**/
-/*		// Make the entire thing a heap after each iteration*/
-/*		makeHeap(arr, n, 0);*/
-/**/
-/**/
-/*	}*/
-/*}*/
-/**/
-/*// To turn a small 3 element childs parent pair into a max heap*/
-/*void makeHeap(int arr[], int n, int curr) {*/
-/**/
-/*	// The root should be at 0 to start but we'll swap it to the largest element*/
-/*	int *root = &arr[curr];*/
-/**/
-/*	// Indexes for the children of the current node*/
-/*	int leftChildIndex = curr*2 + 1;*/
-/*	int rightChildIndex = curr*2 + 2;*/
-/**/
-/*	// Base case if children do not exist so bottom element*/
-/*	if (leftChildIndex >= n && rightChildIndex >= n) return;*/
-/**/
-/*	// See if a swap can be made if the left or right children are bigger*/
-/*	if (leftChildIndex < n && arr[leftChildIndex] > *root) {*/
-/*		swap(root, &arr[leftChildIndex]);*/
-/*		makeHeap(arr, n, leftChildIndex);*/
-/*	}*/
-/**/
-/*	if (rightChildIndex < n && arr[rightChildIndex] > *root) {*/
-/*		swap(root, &arr[rightChildIndex]);*/
-/*		makeHeap(arr, n, rightChildIndex);*/
-/*	}*/
-/**/
-/*	// Recursively reach the bottom of the heap*/
-/*	makeHeap(arr, n, leftChildIndex);*/
-/*	makeHeap(arr, n, rightChildIndex);*/
-/**/
-/*	// If we're back at the top it means that the heap was successfully made*/
-/*	// Now we can perform the step where we swap the initial and final value and reheap the entire thing*/
-/*}*/
-/**/
+void heapSort(int arr[], int n) {
+
+	// Keep going we've extracted all the elements
+	for (int i = n-1; i >= 0; i--) {
+
+		// Ensure max heap is made
+		for (int j = 1; j <= i; j++) {
+			
+			// If the parent is smaller than a child node, swap them
+			// While loop because the swapped may be smaller than another child node so keep checking
+			while (arr[(j-1) / 2] < arr[j]) {
+				swap(&arr[(j-1) / 2], &arr[j]);
+
+				// Move back to the swapped parent to ensure that it's also sorted
+				j = ((j-1) / 2);
+			}
+		}
+
+		swap(&arr[0], &arr[i]);
+	}
+}
