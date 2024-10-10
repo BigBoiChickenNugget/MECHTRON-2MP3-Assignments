@@ -3,6 +3,7 @@
 // You will submit this file, mySort.c holds the actual implementation of sorting functions
 #include <math.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 
 void swap(int *x, int *y) {
@@ -107,4 +108,31 @@ void heapSort(int arr[], int n) {
 
 		swap(&arr[0], &arr[i]);
 	}
+}
+
+void countingSort(int arr[], int n) {
+
+	// Find the maximum value in the array
+	int max = arr[0];
+	for (int i = 0; i < n; i++) {
+		if (arr[i] > max) max = arr[i];
+	}
+
+	// Declare an array of counts with max elements
+	int *counts = malloc((max+1)*sizeof(int));
+	for (int i = 0; i < n; i++) {
+
+		// Increment the number of counts for whatever element is in the array
+		counts[arr[i]]++;
+	}
+
+	// Go through the array and put the number of counts in at each position
+	int index = 0;
+	for (int i = 0; i <= max; i++) {
+		for (int j = 0; j < counts[i]; j++) {
+			arr[index] = i;
+			index++;
+		}
+	}
+	free(counts);
 }

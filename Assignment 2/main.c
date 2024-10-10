@@ -13,17 +13,9 @@ int main() {
 	/*int arr[] = {9, 4, 3, 8, 10, 2, 5};*/
 	/*int arr[] = {3, 9, 2, 1, 4, 5};*/
 	/*int arr[] = {15, 30, 10, 5, 20, 25, 8, 3, 2, 18, 6};*/
+	int arr[] = {1, 99, 56, 87, 322, 34, 2175, 217, 8};
 
-int arr[] = {
-        -12, 45, 0, -7, 23, -15, 9, 76, -30, 42,
-        58, -3, 0, 19, 21, -1, 34, -100, 55, 2,
-        30, -25, 0, 77, -5, 16, -12, 88, 10, -40,
-        22, -60, 49, 0, 5, 99, -75, 14, 33, 57,
-        0, -33, 91, -9, 38, 7, 4, 12, -1, 18
-    };
-
-
-    int n = sizeof(arr) / sizeof(arr[0]);
+int n = sizeof(arr) / sizeof(arr[0]);
 
 	int testArr[n];
 
@@ -65,6 +57,16 @@ int arr[] = {
 	printf("Heap sorted array: ");
 	printArray(testArr, n);
 	printf("\n");
+
+	// Counting sort
+	memcpy(testArr, arr, n * sizeof(int));
+	printf("Original array: ");
+	printArray(testArr, n);
+	countingSort(testArr, n);
+	printf("Counting sorted array: ");
+	printArray(testArr, n);
+	printf("\n");
+	
 
     return 0;
 }
