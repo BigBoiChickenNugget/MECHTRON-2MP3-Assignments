@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 void swap(int *x, int *y) {
     int temp = *x;
@@ -30,34 +30,39 @@ void insertionSort(int arr[], int n) {
 		int *lowest = &arr[i];
 		for (int j = i+1; j < n; j++) {
 			if (arr[j] < *lowest) swap(&arr[j], lowest);
-
 		}
 	}
 }
 
-// Merge Sort. Given an array and the length of the left and right halves.
+// Merge Sort. Given an array and the indexes of the subarray inclusive
 void mergeSort(int arr[], int l, int r) {
 
+	// Get the length of the subarray
+	int n = r - l + 1;
+
 	// Base case is when only one element is in the array so one or the other half is 0.
-	if (l == 0 || r == 0) return;
+	if (n == 1) return;
+
+	// Midpoint of the array
+	int mid = (l+r) / 2;
 
 	// Recursively split the array up
-	mergeSort(&arr[0], l/2, l - l/2); // l - l/2 is to take care of odd numbers easily.
-	mergeSort(&arr[l], r/2, r - r/2); // Start of the right half should be end at the index which is the number of left half elements
+	mergeSort(arr, l, mid);
+	mergeSort(arr, mid+1, r);
 
 	// Temporary array to store the sorted result of the left and right arrays.
-	int tmp[l+r];
+	int tmp[n];
 
 	// Stores the indexes of the array halves
-	int indexSortedL = 0;
-	int indexSortedR = l;
+	int indexSortedL = l;
+	int indexSortedR = mid+1;
 
 	// To check if either half is empty
 	bool depletedR = false;
 	bool depletedL = false;
 
 	// Iterate through the entire tmp array and assign the lesser value between the left and right half
-	for (int i = 0; i < l+r; i++) {
+	for (int i = 0; i < n; i++) {
 
 		// If the current left element is less than the current right element, or if the right array has been used up, go ahead and insert into tmp
 		if ((arr[indexSortedL] <= arr[indexSortedR] || depletedR == true) && !depletedL) {
@@ -65,9 +70,9 @@ void mergeSort(int arr[], int l, int r) {
 			indexSortedL++;
 
 			// If all the elements have been used up make the corresponding boolean true
-			if (indexSortedL >= l) {
+			if (indexSortedL > mid) {
 				depletedL = true;
-				indexSortedL = l-1; // To ensure no unsafe memory access
+				indexSortedL=0; // To ensure no unsafe memory access
 			}	
 		}
 
@@ -77,20 +82,22 @@ void mergeSort(int arr[], int l, int r) {
 			indexSortedR++;
 
 			// If all the right elements have been used up make the corresponding boolean true
-			if (indexSortedR >= l+r) {
+			if (indexSortedR > r) {
 				depletedR = true;
-				indexSortedR = r+l-1; // To ensure no unsafe memory access
+				indexSortedR=0; // To ensure no unsafe memory access
 			}
 		}
 	}
 
+
+
 	// Replace arr with tmp
-	memcpy(arr, tmp, sizeof(tmp));
+	memcpy(&arr[l], tmp, n * sizeof(int));
 }
 
 void heapSort(int arr[], int n) {
 
-	// Keep going we've extracted all the elements
+	// Keep going until we've extracted all the elements
 	for (int i = n-1; i >= 0; i--) {
 
 		// Ensure max heap is made
@@ -112,28 +119,37 @@ void heapSort(int arr[], int n) {
 
 void countingSort(int arr[], int n) {
 
-	// Find the maximum value in the array
+	// Find the maximum and minimum value in the array
 	int max = arr[0];
-	int min = arr[0]; // Also get minimum so we can deal with negatives
+	int min = arr[0];
 	for (int i = 0; i < n; i++) {
 		if (arr[i] > max) max = arr[i];
+		if (arr[i] < min) min = arr[i];
 	}
 
-	// Declare an array of counts with max elements
-	int *counts = malloc((max+1)*sizeof(int));
+	// Length of the counting array
+	int counts[max+min+1];
+
+	// Initialize counts to 0
+	for (int i = 0; i < max+min+1; i++) counts[i] = 0;
+
+	// Count the number of each element in the array
 	for (int i = 0; i < n; i++) {
 
 		// Increment the number of counts for whatever element is in the array
-		counts[arr[i]]++;
+		// The minimum number is added to the index to take care of negative values
+		counts[arr[i]+abs(min)]++;
 	}
 
-	// Go through the array and put the number of counts in at each position
+	// Go through the possible numbers
 	int index = 0;
-	for (int i = 0; i <= max; i++) {
-		for (int j = 0; j < counts[i]; j++) {
+	for (int i = min; i <= max; i++) {
+
+		// Put the number of each element in the array in the actual array
+		// The index of number has the minimum number added to it which is to take care of negative elements
+		for (int j = 0; j < counts[i+abs(min)]; j++) {
 			arr[index] = i;
 			index++;
 		}
 	}
-	free(counts);
 }

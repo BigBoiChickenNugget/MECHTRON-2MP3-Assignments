@@ -12,10 +12,10 @@ int main() {
     /*int arr[] = {64, 64, -134, -5, 0, 25, 12, 22, 11, 90, -500};*/
 	/*int arr[] = {9, 4, 3, 8, 10, 2, 5};*/
 	/*int arr[] = {3, 9, 2, 1, 4, 5};*/
-	/*int arr[] = {15, 30, 10, 5, 20, 25, 8, 3, 2, 18, 6};*/
-	int arr[] = {1, 99, 56, 87, 322, 34, 2175, 217, 8};
+	int arr[] = {15, 30, 10, 5, 20, 25, 8, 3, 2, 18, 6, -28, -40, -465};
+	/*int arr[] = {1, 99, 56, 87, 322, 34, 2175, 217, 8};*/
 
-int n = sizeof(arr) / sizeof(arr[0]);
+	int n = sizeof(arr) / sizeof(arr[0]);
 
 	int testArr[n];
 
@@ -44,7 +44,7 @@ int n = sizeof(arr) / sizeof(arr[0]);
 	memcpy(testArr, arr, n * sizeof(int));
 	printf("Original array: ");
 	printArray(testArr, n);
-	mergeSort(testArr, n/2, n - n/2); // Takes care of odd lengths automatically
+	mergeSort(testArr, 0, n-1);
 	printf("Merge sorted array: ");
 	printArray(testArr, n);
 	printf("\n");
