@@ -128,10 +128,10 @@ void countingSort(int arr[], int n) {
 	}
 
 	// Length of the counting array
-	int counts[max+min+1];
-
-	// Initialize counts to 0
-	for (int i = 0; i < max+min+1; i++) counts[i] = 0;
+	int counts[abs(min) + max + 1];
+	for (int i = 0; i < abs(min) + max + 1; i++) {
+		counts[i] = 0;
+	}
 
 	// Count the number of each element in the array
 	for (int i = 0; i < n; i++) {
