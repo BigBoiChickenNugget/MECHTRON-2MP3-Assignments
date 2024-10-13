@@ -55,7 +55,7 @@ void mergeSort(int arr[], int l, int r) {
 	mergeSort(arr, l, mid);
 	mergeSort(arr, mid+1, r);
 
-	// Temporary array to store the combination of the left and right arrays, which should be in sorted form individually
+	// Temporary array to store the combination of the left and right arrays, both of which should be in sorted form individually
 	int tmp[n];
 
 	// Stores the indexes of the array halves
@@ -94,11 +94,11 @@ void mergeSort(int arr[], int l, int r) {
 		}
 	}
 
-	// Replace arr with tmp
+	// Replace the elements in the original array with the sorted elements in the same range
 	memcpy(&arr[l], tmp, n * sizeof(int));
 }
 
-// Function to make heap
+// Function to make heap (used in the heapSort function)
 void makeHeap(int arr[], int n, int currNodeIndex) {
 
 	// Index of the largest amongst the parent and 2 child nodes
@@ -148,6 +148,7 @@ void heapSort(int arr[], int n) {
 	}
 }
 
+// Counting Sort
 void countingSort(int arr[], int n) {
 
 	// Find the maximum and minimum value in the array

@@ -9,6 +9,8 @@ void printArray(int arr[], int n);
 
 // Test the sorting algorithms
 int main() {
+
+	// Test cases. Uncomment the test case you want to test
     /*int arr[] = {64, 64, -134, -5, 0, 25, 12, 22, 11, 90, -500};*/
 	/*int arr[] = {9, 4, 3, 8, 10, 2, 5};*/
 	/*int arr[] = {3, 9, 2, 1, 4, 5};*/
@@ -16,8 +18,10 @@ int main() {
 	/*int arr[] = {1, 99, 56, 87, 322, 34, 2175, 217, 8};*/
 	/*int arr[] = {-1};*/
 
+	// Get the size of the array
 	int n = sizeof(arr) / sizeof(arr[0]);
 
+	// Copy the array to test the sorting algorithms
 	int testArr[n];
 
 	// Bubble Sort
@@ -45,7 +49,7 @@ int main() {
 	memcpy(testArr, arr, n * sizeof(int));
 	printf("Original array: ");
 	printArray(testArr, n);
-	mergeSort(testArr, 0, n-1);
+	mergeSort(testArr, 0, n-1); // Given the start and end index inclusive
 	printf("Merge sorted array: ");
 	printArray(testArr, n);
 	printf("\n");
