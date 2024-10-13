@@ -95,25 +95,60 @@ void mergeSort(int arr[], int l, int r) {
 	memcpy(&arr[l], tmp, n * sizeof(int));
 }
 
+// Function to make heap
+void makeHeap(int arr[], int n, int currNodeIndex) {
+
+	// Index of the largest amongst the parent and 2 child nodes
+	// In case the left child is larger than the current parent but the right child is the largest
+	int largest = currNodeIndex;
+
+	// Base case is reaching the bottom of the heap (no child exists)
+	int leftChildIndex = currNodeIndex * 2 + 1;
+	int rightChildIndex = currNodeIndex * 2 + 2;
+
+	// Ensure that the left child index exists in the array
+	if (leftChildIndex < n) {
+
+		// If the left child index is greater than the parent swap them
+		if (arr[leftChildIndex] > arr[largest]) {
+
+			// New largest is the left node index
+			largest = leftChildIndex;
+		}
+	}
+
+	// Ensure that the right child index is in the array
+	if (rightChildIndex < n) {
+
+		// If the right child is larger than the larger amongst the left child and the parent, swap whichever one is there
+		if (arr[rightChildIndex] > arr[largest]) {
+			largest = rightChildIndex;
+		}
+	}
+
+	if (largest != currNodeIndex) {
+		swap(&arr[currNodeIndex], &arr[largest]);
+		makeHeap(arr, n, largest);
+	}
+}
+
+// Heap sort
 void heapSort(int arr[], int n) {
 
-	// Keep going until we've extracted all the elements
+	// Ensure we start with a max heap by going from the bottom to the top
 	for (int i = n-1; i >= 0; i--) {
+		makeHeap(arr, n, i);
+	}
 
-		// Ensure max heap is made
-		for (int j = 1; j <= i; j++) {
-			
-			// If the parent is smaller than a child node, swap them
-			// While loop because the swapped may be smaller than another child node so keep checking
-			while (arr[(j-1) / 2] < arr[j]) {
-				swap(&arr[(j-1) / 2], &arr[j]);
+	// Begin actually sorting
+	for (int i = n-1; i >= 1; i--) {
 
-				// Move back to the swapped parent to ensure that it's also sorted
-				j = ((j-1) / 2);
-			}
-		}
-
+		// Swap the first and last indexes
 		swap(&arr[0], &arr[i]);
+
+		// Ensure max heap is made starting at the root node (it should be the largest)
+		makeHeap(arr, i, 0);
+
 	}
 }
 
