@@ -1,6 +1,7 @@
 // CODE: include necessary library(s)
 // you have to write all the functions and algorithms from scratch,
 // You will submit this file, mySort.c holds the actual implementation of sorting functions
+#include "mySort.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -26,7 +27,11 @@ void bubbleSort(int arr[], int n) {
 
 // Insertion Sort
 void insertionSort(int arr[], int n) {
+
+	// Iterate through each index in the array
 	for (int i = 0; i < n-1; i++) { 
+
+		// Find the lowest element in the array beyond this point and swap it with the initial point
 		int *lowest = &arr[i];
 		for (int j = i+1; j < n; j++) {
 			if (arr[j] < *lowest) swap(&arr[j], lowest);
@@ -40,7 +45,7 @@ void mergeSort(int arr[], int l, int r) {
 	// Get the length of the subarray
 	int n = r - l + 1;
 
-	// Base case is when only one element is in the array so one or the other half is 0.
+	// Base case is when only one element is in the array
 	if (n == 1) return;
 
 	// Midpoint of the array
@@ -50,7 +55,7 @@ void mergeSort(int arr[], int l, int r) {
 	mergeSort(arr, l, mid);
 	mergeSort(arr, mid+1, r);
 
-	// Temporary array to store the sorted result of the left and right arrays.
+	// Temporary array to store the combination of the left and right arrays, which should be in sorted form individually
 	int tmp[n];
 
 	// Stores the indexes of the array halves
@@ -89,8 +94,6 @@ void mergeSort(int arr[], int l, int r) {
 		}
 	}
 
-
-
 	// Replace arr with tmp
 	memcpy(&arr[l], tmp, n * sizeof(int));
 }
@@ -99,33 +102,27 @@ void mergeSort(int arr[], int l, int r) {
 void makeHeap(int arr[], int n, int currNodeIndex) {
 
 	// Index of the largest amongst the parent and 2 child nodes
-	// In case the left child is larger than the current parent but the right child is the largest
 	int largest = currNodeIndex;
 
-	// Base case is reaching the bottom of the heap (no child exists)
+	// Get the indexes of the child nodes
 	int leftChildIndex = currNodeIndex * 2 + 1;
 	int rightChildIndex = currNodeIndex * 2 + 2;
 
 	// Ensure that the left child index exists in the array
 	if (leftChildIndex < n) {
 
-		// If the left child index is greater than the parent swap them
-		if (arr[leftChildIndex] > arr[largest]) {
-
-			// New largest is the left node index
-			largest = leftChildIndex;
-		}
+		// If the left child index is greater than the existing largest (parent) assign it as the largest
+		if (arr[leftChildIndex] > arr[largest]) largest = leftChildIndex;
 	}
 
 	// Ensure that the right child index is in the array
 	if (rightChildIndex < n) {
 
-		// If the right child is larger than the larger amongst the left child and the parent, swap whichever one is there
-		if (arr[rightChildIndex] > arr[largest]) {
-			largest = rightChildIndex;
-		}
+		// If the right child index is greater than the existing largest (parent or left child) assign it as the largest
+		if (arr[rightChildIndex] > arr[largest]) largest = rightChildIndex;
 	}
 
+	// If the largest is not the parent we started with, swap it and ensure the subheap that was swapped is still a heap
 	if (largest != currNodeIndex) {
 		swap(&arr[currNodeIndex], &arr[largest]);
 		makeHeap(arr, n, largest);
@@ -148,7 +145,6 @@ void heapSort(int arr[], int n) {
 
 		// Ensure max heap is made starting at the root node (it should be the largest)
 		makeHeap(arr, i, 0);
-
 	}
 }
 
@@ -162,8 +158,10 @@ void countingSort(int arr[], int n) {
 		if (arr[i] < min) min = arr[i];
 	}
 
-	// Length of the counting array
+	// Length of the counting array should be the the number of negatives plus the number of positives plus another spot for 0
 	int counts[abs(min) + max + 1];
+
+	// Initialize the array as full of zeros
 	for (int i = 0; i < abs(min) + max + 1; i++) {
 		counts[i] = 0;
 	}

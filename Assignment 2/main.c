@@ -1,7 +1,7 @@
 // CODE: include necessary library(s)
 #include <stdio.h>
 #include <string.h>
-#include "mySort.c"
+#include "mySort.h"
 
 // Utility functions
 void printArray(int arr[], int n);
@@ -14,6 +14,7 @@ int main() {
 	/*int arr[] = {3, 9, 2, 1, 4, 5};*/
 	int arr[] = {15, 8, -465, -500, 8, 18, 18, 30, 10, 5, 20, 25, 8, 3, 2, 18, 6, -28, -40, -465};
 	/*int arr[] = {1, 99, 56, 87, 322, 34, 2175, 217, 8};*/
+	/*int arr[] = {-1};*/
 
 	int n = sizeof(arr) / sizeof(arr[0]);
 
