@@ -16,6 +16,6 @@ typedef struct {
 	int intArray[ARRAY_SIZE];
 } WordData;
 
-void read_data(char *filename, WordData **data);
+WordData *read_data(char *filename);
 
 #endif

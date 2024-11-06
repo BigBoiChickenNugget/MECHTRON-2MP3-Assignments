@@ -2,12 +2,10 @@
 
 // Example of how to use read_data in main
 int main() {
-    WordData *data = NULL; // Initialize pointer to NULL
 
-    read_data("vader_lexicon.txt", &data);
+    WordData *data = read_data("vader_lexicon.txt");
 
-	// Show results
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0;data[i].word[0] != '\0'; i++) {
 		printf("%s\t%f\t%f\t", data[i].word, data[i].value1, data[i].value2);
 		for (int j = 0; j < ARRAY_SIZE; j++) {
 			printf("%d ", data[i].intArray[j]);
@@ -15,11 +13,12 @@ int main() {
 		printf("\n");
 	}
 
-	free(data); // Free allocated memory
-	return 0;
+	printf("\n");
+
+	free(data);
 }
 
-void read_data(char *filename, WordData **data) {
+WordData* read_data(char *filename) {
 
     // Open the file
     FILE *file = fopen(filename, "r");
@@ -27,15 +26,15 @@ void read_data(char *filename, WordData **data) {
     // Ensure the file was successfully opened
     if (file == NULL) {
         printf("Error opening file\n");
-        return;
+        return NULL;
     }
 
     // Allocate memory for the first block of WordData
-    *data = malloc(sizeof(WordData));
-    if (*data == NULL) {
+    WordData *data = malloc(sizeof(WordData));
+    if (data == NULL) {
         printf("Memory allocation failed\n");
         fclose(file);
-        return;
+        return NULL;
     }
 
     int i = 0;
@@ -43,13 +42,23 @@ void read_data(char *filename, WordData **data) {
     // Read data from the file
     while (1) {
 
-		/*printf("I: %d\n", i);*/
+		// Allocate memory for the WordData item
+		data = realloc(data, (i+1) * sizeof(WordData));
+
+		// Ensure memory was allocated
+		if (data == NULL) {
+			printf("Memory allocation failed\n");
+			free(data);
+			fclose(file);
+			return NULL;
+		}
 
         // Read the word and two float values
-        fscanf(file, "%s %f %f", (*data)[i].word, &(*data)[i].value1, &(*data)[i].value2);
+        fscanf(file, "%s %f %f", &data[i].word, &data[i].value1, &data[i].value2);
 
 		// Break if end of file
 		if (feof(file)) {
+			data[i].word[0] = '\0';
 			break;
 		}
 
@@ -62,7 +71,7 @@ void read_data(char *filename, WordData **data) {
         char *token = strtok(line, "[], \n\t\v\f\r");
 
         for (int j = 0; j < ARRAY_SIZE && token != NULL; j++) {
-            (*data)[i].intArray[j] = atoi(token);
+            data[i].intArray[j] = atoi(token);
             token = strtok(NULL, "[], \n\t\v\f\r");
         }
 
@@ -70,19 +79,11 @@ void read_data(char *filename, WordData **data) {
         // Prepare to read the next WordData item
         i++;
 
-        // Reallocate memory to hold one more WordData entry
-        WordData *temp = realloc(*data, (i + 1) * sizeof(WordData));
-        if (temp == NULL) {
-            printf("Memory allocation failed\n");
-            free(*data);
-            fclose(file);
-            return;
-        }
-
-        // Update the original pointer to point to the new memory
-        *data = temp;
     }
 
     // Close the file
     fclose(file);
+
+	// Return the data
+	return data;
 }
