@@ -87,3 +87,7 @@ WordData* read_data(char *filename) {
 	// Return the data
 	return data;
 }
+
+float calculate_sentiment_score(WordData *data, char *sentence) {
+	return 0.0;
+}
