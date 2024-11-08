@@ -1,23 +1,5 @@
 #include "utility.h"
 
-// Example of how to use read_data in main
-int main() {
-
-    WordData *data = read_data("vader_lexicon.txt");
-
-	for (int i = 0;data[i].word[0] != '\0'; i++) {
-		printf("%s\t%f\t%f\t", data[i].word, data[i].value1, data[i].value2);
-		for (int j = 0; j < ARRAY_SIZE; j++) {
-			printf("%d ", data[i].intArray[j]);
-		}
-		printf("\n");
-	}
-
-	printf("\n");
-
-	free(data);
-}
-
 WordData* read_data(char *filename) {
 
     // Open the file
@@ -66,8 +48,6 @@ WordData* read_data(char *filename) {
         char line[2000];
         fgets(line, 2000, file);  // Read the line for integers
 
-		/*printf("WORD: %s\n", (*data)[i].word);*/
-		/*printf("LINE: %s\n", line);*/
         char *token = strtok(line, "[], \n\t\v\f\r");
 
         for (int j = 0; j < ARRAY_SIZE && token != NULL; j++) {
@@ -88,6 +68,143 @@ WordData* read_data(char *filename) {
 	return data;
 }
 
+// Linear search for a word in the WordData array
+WordData find_data(WordData *data, char *word) {
+
+	// Search for the word in the data array
+	for (int i = 0; data[i].word[0] != '\0'; i++) {
+		if (strcmp(data[i].word, word) == 0) {
+			return data[i];
+		}
+	}
+
+
+	// Return a WordData item with a null word
+	WordData nullData;
+	nullData.word[0] = '\0';
+	return nullData;
+}
+
+
 float calculate_sentiment_score(WordData *data, char *sentence) {
-	return 0.0;
+
+	// Initialize the scores array
+	float scores[MAX_STRING_LENGTH] = { 0.0 }; // ONLY FOR TESTING PURPOSES
+	int index = 0;
+
+	// Count of all words with sentiment
+	int sentimentCount = 0;
+
+	// Sum of all sentiment scores
+	float sentimentSum = 0.0;
+
+	// Array to store the split sentence
+	char sentence_split[MAX_STRING_LENGTH][MAX_STRING_LENGTH];
+
+	// Copy the sentence for strtok to work
+	char sentence_copy[MAX_STRING_LENGTH];
+	strcpy(sentence_copy, sentence);
+
+	// Since the only punctuation we care about is exclamation marks
+	// We will remove all other punctuation
+	char *token = strtok(sentence_copy, " \n\t\v\f\r,.?");
+
+	// Loop through the tokens
+	for (; token != NULL; index++) {
+
+		// Booleans to check for all caps and exclamations
+		bool allCaps = true;
+		int exclamation = 0;
+
+		// Convert the token to lowercase
+		char lowerToken[MAX_STRING_LENGTH];
+		strcpy(lowerToken, token);
+
+		// Iterate through each character and use tolower()
+		for (int i = 0; lowerToken[i] != '\0'; i++) {
+
+			// Check for all uppercase
+			if (islower(lowerToken[i])) allCaps = false;
+
+			// Convert to lowercase
+			lowerToken[i] = tolower(lowerToken[i]);
+
+			// Check for exclamation marks
+			if (lowerToken[i] == '!') {
+
+				// Increment the exclamation count and null the character
+				exclamation++;
+				lowerToken[i] = '\0';
+
+				// Limit the exclamation count to 3
+				if (exclamation > 3) exclamation = 3;
+			}
+		}
+
+		// Copy the token to the sentence split array
+		strcpy(sentence_split[index], lowerToken);
+
+		// Find the word in the data array
+		WordData wordData = find_data(data, lowerToken);
+
+		// Check if the word was found
+		if (wordData.word[0] != '\0') {
+
+			// Increment the sentiment count
+			sentimentCount++;
+
+			// Add the score to the scores array
+			scores[index] = wordData.value1;
+
+			// If word is capitalized, multiply by factor
+			if (allCaps) {
+				scores[index] *= CAPS;
+			}
+
+			// Check if the previous word was an intensifier or negation
+			if (index > 0) {
+
+				// Check positive intensifiers
+				for (int i = 0; i < POSITIVE_INTENSIFIERS_SIZE; i++) {
+					if (strcmp(sentence_split[index - 1], positive_intensifiers[i]) == 0) {
+						scores[index] += scores[index] * INTENSIFIER;
+					}
+				}
+
+				// Check negative intensifiers
+				for (int i = 0; i < NEGATIVE_INTENSIFIERS_SIZE; i++) {
+					if (strcmp(sentence_split[index - 1], negative_intensifiers[i]) == 0) {
+						scores[index] -= scores[index] * INTENSIFIER;
+					}
+				}
+
+				// Check negations
+				for (int i = 0; i < NEGATIONS_SIZE; i++) {
+					if (strcmp(sentence_split[index - 1], negation_words[i]) == 0) {
+						scores[index] *= NEGATION;
+					}
+				}
+
+				sentimentSum += scores[index];
+			}
+
+			// Add exclamation mark if positive, and subtract if negative
+			if (scores[index] > 0) {
+				scores[index] += exclamation * EXCLAMATION;
+			} else {
+				scores[index] -= exclamation * EXCLAMATION;
+			}
+		}
+
+        token = strtok(NULL, " \n\t\v\f\r,.?");
+	}
+
+	// Print the words with their results
+	for (int i = 0; i < index; i++) {
+		printf("Word: %s Score: %f\n", sentence_split[i], scores[i]);
+		token = strtok(NULL, " \n\t\v\f\r,.?");
+	}
+
+	float compound = sentimentSum / sqrt( pow(sentimentSum, 2) + 15 );
+	return compound;
 }

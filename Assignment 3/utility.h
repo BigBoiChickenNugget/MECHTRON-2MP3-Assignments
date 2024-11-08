@@ -3,24 +3,12 @@
 
 // Define constants
 #define ARRAY_SIZE 20
-#define MAX_STRING_LENGTH 20
+#define MAX_STRING_LENGTH 200
 #define LINE_LENGTH 100
 
-// Include necessary libraries
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-// Define the structure for the data
-typedef struct {
-	char word[MAX_STRING_LENGTH];
-	float value1;
-	float value2;
-	int intArray[ARRAY_SIZE];
-} WordData;
-
 // Positive words array
-char *positive_amplifiers[] = {
+#define POSITIVE_INTENSIFIERS_SIZE 11
+static char *positive_intensifiers[] = {
 	"absolutely",
 	"completely",
 	"extremely",
@@ -32,10 +20,11 @@ char *positive_amplifiers[] = {
 	"exceptionally",
 	"incredibly",
 	"remarkably",
-}
+};
 
 // Negative words array
-char *negative_amplifiers[] = {
+#define NEGATIVE_INTENSIFIERS_SIZE 9
+static char *negative_intensifiers[] = {
 	"barely",
 	"hardly",
 	"scarcely",
@@ -45,13 +34,52 @@ char *negative_amplifiers[] = {
 	"partially",
 	"fairly",
 	"pretty much",
-}
+};
 
-// The boost from exclamation marks
-const float exclamation = 0.292;
+// Negation words array
+#define NEGATIONS_SIZE 13
+static char *negation_words[] = {
+	"not",
+	"isn't",
+	"doesn't",
+	"wasn't",
+	"shouldn't",
+	"won't",
+	"cannot",
+	"can't",
+	"nor",
+	"neither",
+	"without",
+	"lack",
+	"missing",
+};
+
+// The boost from different amplifiers
+#define INTENSIFIER 0.293
+#define EXCLAMATION 0.292
+#define CAPS 1.5
+#define NEGATION -0.5
+
+
+// Include necessary libraries
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <math.h>
+
+// Define the structure for the data
+typedef struct {
+	char word[MAX_STRING_LENGTH];
+	float value1;
+	float value2;
+	int intArray[ARRAY_SIZE];
+} WordData;
 
 // Function prototypes
 WordData *read_data(char *filename); 
 float calculate_sentiment_score(WordData *data, char *sentence);
+WordData find_data(WordData *data, char *word);
 
 #endif
