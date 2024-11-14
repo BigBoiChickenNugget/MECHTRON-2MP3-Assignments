@@ -3,7 +3,8 @@
 void main() {
 
     WordData *data = read_data("vader_lexicon.txt");
-	char *sentence = "VADER is smart, handsome, and funny.";
+	// char *sentence = "VADER is VERY SMART, handsome, and FUNNY!";
+    char *sentence = {"The book was good."};
 
 	float compound = calculate_sentiment_score(data, sentence);
 
