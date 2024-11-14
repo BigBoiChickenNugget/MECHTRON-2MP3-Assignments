@@ -122,8 +122,6 @@ float calculate_sentiment_score(WordData *data, char *sentence) {
 		char lowerToken[MAX_STRING_LENGTH];
 		strcpy(lowerToken, token);
 
-		printf("Token: %s\n", lowerToken);
-
 		// Iterate through each character and use tolower()
 		for (int i = 0; lowerToken[i] != '\0'; i++) {
 
@@ -194,14 +192,14 @@ float calculate_sentiment_score(WordData *data, char *sentence) {
 
 			// Check positive intensifiers
 			for (int i = 0; i < POSITIVE_INTENSIFIERS_SIZE; i++) {
-				if (strcmp(sentence_split[index - 1], positive_intensifiers[i]) == 0) {
+				if (strcmp(sentence_split[index], positive_intensifiers[i]) == 0) {
 					intensifier = INTENSIFIER;
 				}
 			}
 
 			// Check negative intensifiers
 			for (int i = 0; i < NEGATIVE_INTENSIFIERS_SIZE; i++) {
-				if (strcmp(sentence_split[index - 1], negative_intensifiers[i]) == 0) {
+				if (strcmp(sentence_split[index], negative_intensifiers[i]) == 0) {
 					intensifier = -INTENSIFIER;
 				}
 			}
@@ -209,18 +207,11 @@ float calculate_sentiment_score(WordData *data, char *sentence) {
 			// If intensifier is capitalized, multiply by factor
 			if (allCaps && intensifier != 0) {
 				intensifier *= CAPS;
-				printf("Intensifier: %f\n", intensifier);
 			}
 		}
 
         token = strtok(NULL, " \n\t\v\f\r,.?");
 	}
-
-	// Print the words with their results
-	/*for (int i = 0; i < index; i++) {*/
-	/*	printf("Word: %s Score: %f\n", sentence_split[i], scores[i]);*/
-	/*	token = strtok(NULL, " \n\t\v\f\r,.?");*/
-	/*}*/
 
 	float compound = sentimentSum / sqrt( pow(sentimentSum, 2) + 15 );
 	return compound;
