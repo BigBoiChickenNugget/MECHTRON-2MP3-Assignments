@@ -100,6 +100,9 @@ float calculate_sentiment_score(WordData *data, char *sentence) {
 	// Stores the current intensifier values
 	float intensifier = 0;
 
+	// Stores the current negation value
+	float negation = 0;
+
 	// Array to store the split sentence
 	char sentence_split[MAX_STRING_LENGTH][MAX_STRING_LENGTH];
 
@@ -164,17 +167,9 @@ float calculate_sentiment_score(WordData *data, char *sentence) {
 				scores[index] *= CAPS;
 			}
 
-			// Add intensifier
-			scores[index] += intensifier * scores[index];
-
-			// Check negations
-			if (index > 0) {
-				for (int i = 0; i < NEGATIONS_SIZE; i++) {
-					if (strcmp(sentence_split[index - 1], negation_words[i]) == 0) {
-						scores[index] *= NEGATION;
-					}
-				}
-			}
+			// Add intensifier and negation values
+			if (intensifier != 0) scores[index] += intensifier * scores[index];
+			if (negation != 0) scores[index] *= negation;
 
 			// Add exclamation mark if positive, and subtract if negative
 			if (scores[index] > 0) {
@@ -185,34 +180,51 @@ float calculate_sentiment_score(WordData *data, char *sentence) {
 			sentimentSum += scores[index];
 		}
 
+		// Reset intensifier. Negation remains until next negation word
 		intensifier = 0;
 
 		// Check if current word is an intensifier
-		if (index > 0) {
-
-			// Check positive intensifiers
-			for (int i = 0; i < POSITIVE_INTENSIFIERS_SIZE; i++) {
-				if (strcmp(sentence_split[index], positive_intensifiers[i]) == 0) {
-					intensifier = INTENSIFIER;
-				}
+		// Check positive intensifiers
+		for (int i = 0; i < POSITIVE_INTENSIFIERS_SIZE; i++) {
+			if (strcmp(sentence_split[index], positive_intensifiers[i]) == 0) {
+				intensifier = INTENSIFIER;
 			}
+		}
 
-			// Check negative intensifiers
-			for (int i = 0; i < NEGATIVE_INTENSIFIERS_SIZE; i++) {
-				if (strcmp(sentence_split[index], negative_intensifiers[i]) == 0) {
-					intensifier = -INTENSIFIER;
-				}
+		// Check negative intensifiers
+		for (int i = 0; i < NEGATIVE_INTENSIFIERS_SIZE; i++) {
+			if (strcmp(sentence_split[index], negative_intensifiers[i]) == 0) {
+				intensifier = -INTENSIFIER;
 			}
+		}
 
-			// If intensifier is capitalized, multiply by factor
-			if (allCaps && intensifier != 0) {
-				intensifier *= CAPS;
+		// If intensifier is capitalized, multiply by factor
+		if (allCaps && intensifier != 0) {
+			intensifier *= CAPS;
+		}
+
+		// Check if current word is a negation
+		for (int i = 0; i < NEGATIONS_SIZE; i++) {
+			if (strcmp(sentence_split[index], negation_words[i]) == 0) {
+				negation = NEGATION;
 			}
+		}
+
+		// If negation is capitalized, multiply by factor
+		if (allCaps && negation != 0) {
+			negation *= CAPS;
 		}
 
         token = strtok(NULL, " \n\t\v\f\r,.?");
 	}
 
+	// Print scores for testing purposes
+	for (int i = 0; i < index; i++) {
+		printf("%s %f\n", sentence_split[i], scores[i]);
+	}
+
 	float compound = sentimentSum / sqrt( pow(sentimentSum, 2) + 15 );
+	/*printf("Sentiment Sum: %f\n", sentimentSum);*/
+	/*printf("Sentiment square root: %f\n", sqrt( sentimentSum * sentimentSum + 15 ));*/
 	return compound;
 }
