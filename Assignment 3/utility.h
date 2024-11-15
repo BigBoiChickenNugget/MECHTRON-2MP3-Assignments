@@ -79,7 +79,7 @@ typedef struct {
 
 // Function prototypes
 WordData *read_data(char *filename); 
-float calculate_sentiment_score(WordData *data, char *sentence);
+float *calculate_sentiment_score(WordData *data, char *sentence);
 WordData find_data(WordData *data, char *word);
 
 #endif

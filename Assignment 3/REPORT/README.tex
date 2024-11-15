@@ -1,0 +1,148 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{listings} % for code listings
+\usepackage{geometry}
+
+\geometry{margin=1in}
+
+\begin{document}
+
+\title{Assignment 3: Implementing VADER Sentiment Analysis in C}
+\author{Talha Ahmad, 400517273}
+\date{November 14, 2024}
+\maketitle
+
+\section{Introduction}
+
+In this assignment, we were tasked with designing an implementing a VADER Sentiment Analysis program in C.
+VADER is a lexicon and rule-based sentiment analysis tool that is widely used in the field of Natural Language Processing (NLP).
+I will discuss my algorithm, as well as compare it with the Python implementation of VADER at the end of this report.
+
+\section{Algorithm}
+
+Our algorithm is divided in 2 main overlying portions: the reading of the data file and the sentiment analysis.
+Both are further split into smaller functions to make the code more modular and easier to understand, and we will discuss these steps in detail.
+
+\subsection{Reading the Data File}
+
+Reading the data file is the first step in our algorithm.
+We open the file and allocate an array of type \texttt{WordData} to store the contents of the file.
+Ensuring that memory was allocated successfully, we then read the word, value1, and value2 using the \texttt{fscanf} function.
+If the file has reached the end, which is indicated by the return value of \texttt{feof}, we break out of the loop.
+We then get the remainder of the line with the \texttt{fgets} function, and store the integer values in an array associated with the \texttt{WordData} struct.
+Finally, we store the \texttt{WordData} struct in an array of \texttt{WordData} structs.
+We also dynamically allocate memory for the \texttt{WordData} array, and free it at the end of the program.
+After closing the file, the pointer to the array is returned and the function has reached its end.
+
+\subsection{Sentiment Analysis}
+
+The sentiment analysis portion of the program is the most important part of the algorithm.
+The function takes a sentence and the data file as arguments, and returns the compound sentiment value of the sentence.
+It is handled in multiple steps, each of which is discussed below.
+
+\subsubsection{Discussion of Variables}
+
+A few variables are used in the sentiment analysis portion of the program.
+There is an index variable to store the index of the current word in the array; a sum variable to store the sum of the sentiment values of the words; and a count variable to store the number of words in the sentence.
+There are also 2 variables to store the intensifier and negation (in the event of an all caps case) values should such an operation be performed on the word.
+In each iteration, there is a boolean variable to check if the word is in all caps.
+
+\subsubsection{Tokenizing the Sentence}
+
+The first step in the sentiment analysis is to tokenize the sentence.
+This is done as the program computes the sentiment value of each word in the sentence.
+We start by tokenizing the sentence using the \texttt{strtok} function, and store the token in a variable.
+At the same time, there is a for loop to check if the word is in all caps, and convert it to lower case if that is the case, and also to check if there are any exclamation marks which are limited to 3.
+
+\subsubsection{Finding the Word in the Data File}
+
+The next step is to find the word in the data file.
+This is done in a separate function, which takes the word and the data file as arguments.
+The function linearly searches the array of \texttt{WordData} structs for the word, and returns the WordData struct if the word is found.
+Otherwise, it returns a \texttt{WordData} struct with the word set to the null character.
+
+\subsubsection{If Word is Found}
+
+If the word is found in the data file, the program proceeds to calculate the sentiment value of the word.
+This is done by first adding whatever value1 is to the sum variable.
+If the word is in all caps, we multiply the sum by the caps constant, which is 1.5.
+Then, if there is an existing intensifier or negation value, we first add the intensifier value to the sum, and then multiply the sum by the negation value.
+Finally, if this word had exclamation marks, we add the exclamation score to the sum if the sum is positive, and subtract it if the sum is negative.
+This is because if the word is "good!!!" it represents a postive sentiment whereas "bad!!!" represents a negative sentiment.
+
+\subsubsection{If Word is Not Found}
+
+If the word is not found, then we need to check if it is an intensifier or negation.
+This is done by iterating through both intensifier arrays and negation array, and checking if the word is in any of them.
+If it is, the value of the earlier defined intensifier or negation variable is set to the value of the intensifier or negation.
+Moreover, if the word is in all caps, we multiply the variables by the caps constant, which is 1.5.
+
+The intensifier value is reset to 0 once it is used, but the negation value is not reset until the next negation word is found.
+This is because if we consider a sentence like "good, very cool, and happy", the intensifier value is declared when the token "very" is found, but then it's used up for "cool" and reset to 0 so the other words don't get affected.
+However, if we consider a sentence like "not good, happy, and excited", the negation value says that, in this context, all the words are negative, so it's not reset until the next negation word is found.
+
+\medskip
+
+After the sentiment value of the word is calculated, the program proceeds to the next word in the sentence.
+At the end, the program returns the compound sentiment value of the sentence with the following formula:
+
+\[ \text{Compound Sentiment} = \frac{\text{Sum}}{\sqrt{\text{Sum}^2 + 15}} \]
+
+For the pos, neg, and neu scores, I summed up the number of positive, negative, and neutral value words in a sentence and then normalized them by dividing by the total sum of the scores.
+This gives me a percentage of the positive, negative, and neutral words in the sentence:
+
+\[ \text{Positive} = \frac{\text{Positive Score}}{\text{Total Score}} \]
+
+\[ \text{Negative} = \frac{\text{Negative Score}}{\text{Total Score}} \]
+
+\[ \text{Neutral} = \frac{\text{Neutral Score}}{\text{Total Score}} \]
+
+\section{Header File}
+
+In the \texttt{utility.h} header file, I defined the \texttt{WordData} struct, as well as the function prototypes for the functions in the program.
+I also defined the intensifier, exclamation, and negation constants in the header file.
+The list of positive and negative intensifiers and negation words are also defined in the header file.
+This was managed through declaring the array as a static char array so it wouldn't be declared multiple times in the program.
+
+\section{Compiling the Program}
+
+To compile the program, the Makefile can be used:
+
+\begin{lstlisting}[language=bash]
+make
+\end{lstlisting}
+
+This will compile the program and create an executable called \texttt{vader}.
+This executable can be run with the following command:
+
+\begin{lstlisting}[language=bash]
+./vader
+\end{lstlisting}
+
+\section{Python Implementation and Comparison}
+
+The Python implementation was done using the \texttt{NLTK} library, which has a built-in VADER Sentiment Analysis tool.
+The following table shows the comparison between the C and Python implementations:
+
+\begin{center}
+	\begin{tabular}{ |c|c|c| }
+		\hline
+		\textbf{Sentence} & \textbf{C Sentiment} & \textbf{Python Sentiment} \\
+		\hline
+		VADER is smart, handsome, and funny. & 0.8316 & 0.8316 \\
+		VADER is smart, handsome, and funny! & 0.854 & 0.844 \\
+		VADER is very smart, handsome, and funny. & 0.852 & 0.8545 \\
+		VADER is VERY SMART, handsome, and FUNNY. & 0.914 & 0.9227 \\
+		VADER is VERY SMART, handsome, and FUNNY!!! & 0.945 & 0.9342 \\
+		VADER is VERY SMART, uber handsome, \\ and FRIGGIN FUNNY!!! & 0.945 & 0.9469 \\
+		VADER is not smart, handsome, nor funny. & -0.599 & -0.7424 \\
+		At least it isn't a horrible book. & 0.307 & 0.431 \\
+		The plot was good, but the characters \\ are uncompelling and the dialog is not great. & -0.141 & -0.7042 \\
+		Make sure you :) or :D today! & 0.895 & 0.8633 \\
+		Not bad at all & 0.307 & 0.431 \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\end{document}

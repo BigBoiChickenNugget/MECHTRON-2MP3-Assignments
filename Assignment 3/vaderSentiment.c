@@ -85,17 +85,21 @@ WordData find_data(WordData *data, char *word) {
 	return nullData;
 }
 
-float calculate_sentiment_score(WordData *data, char *sentence) {
+float *calculate_sentiment_score(WordData *data, char *sentence) {
 
-	// Initialize the scores array
-	float scores[MAX_STRING_LENGTH] = { 0.0 }; // ONLY FOR TESTING PURPOSES
-	int index = 0;
+	// Scores array
+	float scores[MAX_STRING_LENGTH];
 
 	// Count of all words with sentiment
 	int sentimentCount = 0;
 
 	// Sum of all sentiment scores
 	float sentimentSum = 0.0;
+
+	// Variables to store calculations for pos, neu, neg
+	float pos = 0.0;
+	float neu = 0.0;
+	float neg = 0.0;
 
 	// Stores the current intensifier values
 	float intensifier = 0;
@@ -115,7 +119,7 @@ float calculate_sentiment_score(WordData *data, char *sentence) {
 	char *token = strtok(sentence_copy, " \n\t\v\f\r,.?");
 
 	// Loop through the tokens
-	for (; token != NULL; index++) {
+	for (int index = 0; token != NULL; index++) {
 
 		// Booleans to check for all caps and exclamations
 		bool allCaps = true;
@@ -172,10 +176,11 @@ float calculate_sentiment_score(WordData *data, char *sentence) {
 			if (negation != 0) scores[index] *= negation;
 
 			// Add exclamation mark if positive, and subtract if negative
+			// Only works if the current word is a sentiment word
 			if (scores[index] > 0) {
-				scores[index] += exclamation * EXCLAMATION;
+				scores[index] += exclamation * scores[index] * EXCLAMATION;
 			} else {
-				scores[index] -= exclamation * EXCLAMATION;
+				scores[index] -= exclamation * scores[index] * EXCLAMATION;
 			}
 			sentimentSum += scores[index];
 		}
@@ -215,16 +220,35 @@ float calculate_sentiment_score(WordData *data, char *sentence) {
 			negation *= CAPS;
 		}
 
+		// Calculate pos, neu, neg
+		if (scores[index] > 0) {
+			pos += scores[index];
+		} else if (scores[index] == 0) {
+			neu += 1;
+		} else {
+			neg += -1 * scores[index];
+		}
+
+		// Get the next token
         token = strtok(NULL, " \n\t\v\f\r,.?");
 	}
 
-	// Print scores for testing purposes
-	for (int i = 0; i < index; i++) {
-		printf("%s %f\n", sentence_split[i], scores[i]);
-	}
-
+	// Calculate the compound score
 	float compound = sentimentSum / sqrt( pow(sentimentSum, 2) + 15 );
-	/*printf("Sentiment Sum: %f\n", sentimentSum);*/
-	/*printf("Sentiment square root: %f\n", sqrt( sentimentSum * sentimentSum + 15 ));*/
-	return compound;
+
+	// Get the pos, neu, neg values
+	float total = pos + neu + neg;
+	pos = pos / total;
+	neu = neu / total;
+	neg = neg / total;
+
+	// Create and return an array of the scores
+	float *scoreArray = malloc(4 * sizeof(float));
+	scoreArray[0] = compound;
+	scoreArray[1] = pos;
+	scoreArray[2] = neu;
+	scoreArray[3] = neg;
+
+	// Return the array
+	return scoreArray;
 }
