@@ -8,7 +8,7 @@ WordData* read_data(char *filename) {
     // Ensure the file was successfully opened
     if (file == NULL) {
         printf("Error opening file\n");
-        return NULL;
+		exit(1);
     }
 
     // Allocate memory for the first block of WordData
@@ -16,7 +16,7 @@ WordData* read_data(char *filename) {
     if (data == NULL) {
         printf("Memory allocation failed\n");
         fclose(file);
-        return NULL;
+		exit(1);
     }
 
     int i = 0;
@@ -32,7 +32,7 @@ WordData* read_data(char *filename) {
 			printf("Memory allocation failed\n");
 			free(data);
 			fclose(file);
-			return NULL;
+			exit(1);
 		}
 
         // Read the word and two float values
@@ -54,7 +54,6 @@ WordData* read_data(char *filename) {
             data[i].intArray[j] = atoi(token);
             token = strtok(NULL, "[], \n\t\v\f\r");
         }
-
 
         // Prepare to read the next WordData item
         i++;
@@ -78,13 +77,13 @@ WordData find_data(WordData *data, char *word) {
 		}
 	}
 
-
-	// Return a WordData item with a null word
+	// Return a WordData item with a null word if word not found
 	WordData nullData;
 	nullData.word[0] = '\0';
 	return nullData;
 }
 
+// Function to calculate the sentiment score of a sentence
 float *calculate_sentiment_score(WordData *data, char *sentence) {
 
 	// Scores array
@@ -126,24 +125,24 @@ float *calculate_sentiment_score(WordData *data, char *sentence) {
 		int exclamation = 0;
 
 		// Convert the token to lowercase
-		char lowerToken[MAX_STRING_LENGTH];
-		strcpy(lowerToken, token);
+		char currWord[MAX_STRING_LENGTH];
+		strcpy(currWord, token);
 
 		// Iterate through each character and use tolower()
-		for (int i = 0; lowerToken[i] != '\0'; i++) {
+		for (int i = 0; currWord[i] != '\0'; i++) {
 
 			// Check for all uppercase and ensure exclamation marks are not counted
-			if (islower(lowerToken[i]) && lowerToken[i] != '!') allCaps = false;
+			if (islower(currWord[i]) && currWord[i] != '!') allCaps = false;
 
 			// Convert to lowercase
-			lowerToken[i] = tolower(lowerToken[i]);
+			currWord[i] = tolower(currWord[i]);
 
 			// Check for exclamation marks
-			if (lowerToken[i] == '!') {
+			if (currWord[i] == '!') {
 
 				// Increment the exclamation count and null the character
 				exclamation++;
-				lowerToken[i] = '\0';
+				currWord[i] = '\0';
 
 				// Limit the exclamation count to 3
 				if (exclamation > 3) exclamation = 3;
@@ -152,10 +151,10 @@ float *calculate_sentiment_score(WordData *data, char *sentence) {
 		}
 
 		// Copy the token to the sentence split array
-		strcpy(sentence_split[index], lowerToken);
+		strcpy(sentence_split[index], currWord);
 
 		// Find the word in the data array
-		WordData wordData = find_data(data, lowerToken);
+		WordData wordData = find_data(data, currWord);
 
 		// Check if the word was found
 		if (wordData.word[0] != '\0') {

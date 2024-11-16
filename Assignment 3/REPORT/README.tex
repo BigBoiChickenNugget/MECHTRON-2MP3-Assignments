@@ -15,7 +15,7 @@
 
 \section{Introduction}
 
-In this assignment, we were tasked with designing an implementing a VADER Sentiment Analysis program in C.
+In this assignment, we were tasked with designing and implementing a VADER Sentiment Analysis program in C.
 VADER is a lexicon and rule-based sentiment analysis tool that is widely used in the field of Natural Language Processing (NLP).
 I will discuss my algorithm, as well as compare it with the Python implementation of VADER at the end of this report.
 
@@ -38,7 +38,7 @@ After closing the file, the pointer to the array is returned and the function ha
 \subsection{Sentiment Analysis}
 
 The sentiment analysis portion of the program is the most important part of the algorithm.
-The function takes a sentence and the data file as arguments, and returns the compound sentiment value of the sentence.
+The function takes a sentence and the WordData data struct array as arguments, and returns the compound sentiment value of the sentence.
 It is handled in multiple steps, each of which is discussed below.
 
 \subsubsection{Discussion of Variables}
@@ -144,5 +144,460 @@ The following table shows the comparison between the C and Python implementation
 		\hline
 	\end{tabular}
 \end{center}
+
+There is a slight difference between the values especially for words including negation and intensifiers.
+This is because we assume a constant value for the negation and intensifier words, whereas the Python implementation has a more complex algorithm to calculate the sentiment value of the word.
+Moreover, our negation algorithm, as explained in the algorithm section, works all the way until another negation word is found, whereas the Python implementation is a little more advanced in this regard.
+Also, our algorithm only considers exclamation marks if the word they follow is a sentiment word, whereas the Python implementation considers them in context of the full sentence.
+That being said, both the C and the Python implementations manage to agree on whether or not a sentence is positive (positive value) or negative (negative value).
+Therefore, we can conclude that both implementations, though different in their approach, are able to achieve roughly the same consensus on the sentiment of the sentence.
+
+\section{Appendix}
+
+Now I will show all the code files used in the program.
+
+\subsection{utility.h}
+
+The utility.h file takes a lot of the constants used throughout the program, as well as the struct definition and function prototypes.
+
+\begin{lstlisting}[language=c]
+#ifndef UTILITY_H
+#define UTILITY_H
+
+// Define constants
+#define ARRAY_SIZE 20
+#define MAX_STRING_LENGTH 200
+#define LINE_LENGTH 100
+
+// Positive words array
+#define POSITIVE_INTENSIFIERS_SIZE 11
+static char *positive_intensifiers[] = {
+	"absolutely",
+	"completely",
+	"extremely",
+	"really",
+	"so",
+	"totally",
+	"very",
+	"particularly",
+	"exceptionally",
+	"incredibly",
+	"remarkably",
+};
+
+// Negative words array
+#define NEGATIVE_INTENSIFIERS_SIZE 9
+static char *negative_intensifiers[] = {
+	"barely",
+	"hardly",
+	"scarcely",
+	"somewhat",
+	"mildly",
+	"slightly",
+	"partially",
+	"fairly",
+	"pretty much",
+};
+
+// Negation words array
+#define NEGATIONS_SIZE 13
+static char *negation_words[] = {
+	"not",
+	"isn't",
+	"doesn't",
+	"wasn't",
+	"shouldn't",
+	"won't",
+	"cannot",
+	"can't",
+	"nor",
+	"neither",
+	"without",
+	"lack",
+	"missing",
+};
+
+// The boost from different amplifiers
+#define INTENSIFIER 0.293
+#define EXCLAMATION 0.292
+#define CAPS 1.5
+#define NEGATION -0.5
+
+
+// Include necessary libraries
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <math.h>
+
+// Define the structure for the data
+typedef struct {
+	char word[MAX_STRING_LENGTH];
+	float value1;
+	float value2;
+	int intArray[ARRAY_SIZE];
+} WordData;
+
+// Function prototypes
+WordData *read_data(char *filename); 
+float *calculate_sentiment_score(WordData *data, char *sentence);
+WordData find_data(WordData *data, char *word);
+
+#endif
+\end{lstlisting}
+
+\subsection{vaderSentiment.c}
+
+The vaderSentiment.c file contains the implementations of all of the functions used for the purpose of calculating the sentiment of the sentence.
+
+% Text should be smaller
+\begin{lstlisting}[basicstyle=\tiny, language=c]
+#include "utility.h"
+
+WordData* read_data(char *filename) {
+
+    // Open the file
+    FILE *file = fopen(filename, "r");
+
+    // Ensure the file was successfully opened
+    if (file == NULL) {
+        printf("Error opening file\n");
+		exit(1);
+    }
+
+    // Allocate memory for the first block of WordData
+    WordData *data = malloc(sizeof(WordData));
+    if (data == NULL) {
+        printf("Memory allocation failed\n");
+        fclose(file);
+		exit(1);
+    }
+
+    int i = 0;
+
+    // Read data from the file
+    while (1) {
+
+		// Allocate memory for the WordData item
+		data = realloc(data, (i+1) * sizeof(WordData));
+
+		// Ensure memory was allocated
+		if (data == NULL) {
+			printf("Memory allocation failed\n");
+			free(data);
+			fclose(file);
+			exit(1);
+		}
+
+        // Read the word and two float values
+        fscanf(file, "%s %f %f", &data[i].word, &data[i].value1, &data[i].value2);
+
+		// Break if end of file
+		if (feof(file)) {
+			data[i].word[0] = '\0';
+			break;
+		}
+
+        // Read the integer array
+        char line[2000];
+        fgets(line, 2000, file);  // Read the line for integers
+
+        char *token = strtok(line, "[], \n\t\v\f\r");
+
+        for (int j = 0; j < ARRAY_SIZE && token != NULL; j++) {
+            data[i].intArray[j] = atoi(token);
+            token = strtok(NULL, "[], \n\t\v\f\r");
+        }
+
+        // Prepare to read the next WordData item
+        i++;
+
+    }
+
+    // Close the file
+    fclose(file);
+
+	// Return the data
+	return data;
+}
+
+// Linear search for a word in the WordData array
+WordData find_data(WordData *data, char *word) {
+
+	// Search for the word in the data array
+	for (int i = 0; data[i].word[0] != '\0'; i++) {
+		if (strcmp(data[i].word, word) == 0) {
+			return data[i];
+		}
+	}
+
+	// Return a WordData item with a null word if word not found
+	WordData nullData;
+	nullData.word[0] = '\0';
+	return nullData;
+}
+
+// Function to calculate the sentiment score of a sentence
+float *calculate_sentiment_score(WordData *data, char *sentence) {
+
+	// Scores array
+	float scores[MAX_STRING_LENGTH];
+
+	// Count of all words with sentiment
+	int sentimentCount = 0;
+
+	// Sum of all sentiment scores
+	float sentimentSum = 0.0;
+
+	// Variables to store calculations for pos, neu, neg
+	float pos = 0.0;
+	float neu = 0.0;
+	float neg = 0.0;
+
+	// Stores the current intensifier values
+	float intensifier = 0;
+
+	// Stores the current negation value
+	float negation = 0;
+
+	// Array to store the split sentence
+	char sentence_split[MAX_STRING_LENGTH][MAX_STRING_LENGTH];
+
+	// Copy the sentence for strtok to work
+	char sentence_copy[MAX_STRING_LENGTH];
+	strcpy(sentence_copy, sentence);
+
+	// Since the only punctuation we care about is exclamation marks
+	// We will remove all other punctuation
+	char *token = strtok(sentence_copy, " \n\t\v\f\r,.?");
+
+	// Loop through the tokens
+	for (int index = 0; token != NULL; index++) {
+
+		// Booleans to check for all caps and exclamations
+		bool allCaps = true;
+		int exclamation = 0;
+
+		// Convert the token to lowercase
+		char currWord[MAX_STRING_LENGTH];
+		strcpy(currWord, token);
+
+		// Iterate through each character and use tolower()
+		for (int i = 0; currWord[i] != '\0'; i++) {
+
+			// Check for all uppercase and ensure exclamation marks are not counted
+			if (islower(currWord[i]) && currWord[i] != '!') allCaps = false;
+
+			// Convert to lowercase
+			currWord[i] = tolower(currWord[i]);
+
+			// Check for exclamation marks
+			if (currWord[i] == '!') {
+
+				// Increment the exclamation count and null the character
+				exclamation++;
+				currWord[i] = '\0';
+
+				// Limit the exclamation count to 3
+				if (exclamation > 3) exclamation = 3;
+
+			}
+		}
+
+		// Copy the token to the sentence split array
+		strcpy(sentence_split[index], currWord);
+
+		// Find the word in the data array
+		WordData wordData = find_data(data, currWord);
+
+		// Check if the word was found
+		if (wordData.word[0] != '\0') {
+
+			// Increment the sentiment count
+			sentimentCount++;
+
+			// Add the score to the scores array
+			scores[index] = wordData.value1;
+
+			// If word is capitalized, multiply by factor
+			if (allCaps) {
+				scores[index] *= CAPS;
+			}
+
+			// Add intensifier and negation values
+			if (intensifier != 0) scores[index] += intensifier * scores[index];
+			if (negation != 0) scores[index] *= negation;
+
+			// Add exclamation mark if positive, and subtract if negative
+			// Only works if the current word is a sentiment word
+			if (scores[index] > 0) {
+				scores[index] += exclamation * scores[index] * EXCLAMATION;
+			} else {
+				scores[index] -= exclamation * scores[index] * EXCLAMATION;
+			}
+			sentimentSum += scores[index];
+		}
+
+		// Reset intensifier. Negation remains until next negation word
+		intensifier = 0;
+
+		// Check if current word is an intensifier
+		// Check positive intensifiers
+		for (int i = 0; i < POSITIVE_INTENSIFIERS_SIZE; i++) {
+			if (strcmp(sentence_split[index], positive_intensifiers[i]) == 0) {
+				intensifier = INTENSIFIER;
+			}
+		}
+
+		// Check negative intensifiers
+		for (int i = 0; i < NEGATIVE_INTENSIFIERS_SIZE; i++) {
+			if (strcmp(sentence_split[index], negative_intensifiers[i]) == 0) {
+				intensifier = -INTENSIFIER;
+			}
+		}
+
+		// If intensifier is capitalized, multiply by factor
+		if (allCaps && intensifier != 0) {
+			intensifier *= CAPS;
+		}
+
+		// Check if current word is a negation
+		for (int i = 0; i < NEGATIONS_SIZE; i++) {
+			if (strcmp(sentence_split[index], negation_words[i]) == 0) {
+				negation = NEGATION;
+			}
+		}
+
+		// If negation is capitalized, multiply by factor
+		if (allCaps && negation != 0) {
+			negation *= CAPS;
+		}
+
+		// Calculate pos, neu, neg
+		if (scores[index] > 0) {
+			pos += scores[index];
+		} else if (scores[index] == 0) {
+			neu += 1;
+		} else {
+			neg += -1 * scores[index];
+		}
+
+		// Get the next token
+        token = strtok(NULL, " \n\t\v\f\r,.?");
+	}
+
+	// Calculate the compound score
+	float compound = sentimentSum / sqrt( pow(sentimentSum, 2) + 15 );
+
+	// Get the pos, neu, neg values
+	float total = pos + neu + neg;
+	pos = pos / total;
+	neu = neu / total;
+	neg = neg / total;
+
+	// Create and return an array of the scores
+	float *scoreArray = malloc(4 * sizeof(float));
+	scoreArray[0] = compound;
+	scoreArray[1] = pos;
+	scoreArray[2] = neu;
+	scoreArray[3] = neg;
+
+	// Return the array
+	return scoreArray;
+}
+\end{lstlisting}
+
+\subsection{main.c}
+
+The main.c file contains the main function, which is used to run the program on the test cases.
+
+% Wrap the text
+\begin{lstlisting}[language=c, basicstyle=\small, breaklines=true]
+#include "utility.h"
+
+void main() {
+
+	// Get the data from the file
+    WordData *data = read_data("vader_lexicon.txt");
+
+	// Testcases
+	char *sentences[] = {
+		"VADER is smart, handsome, and funny.",
+		"VADER is smart, handsome, and funny!",
+		"VADER is very smart, handsome, and funny.",
+		"VADER is VERY SMART, handsome, and FUNNY.",
+		"VADER is VERY SMART, handsome, and FUNNY!!!",
+		"VADER is VERY SMART, uber handsome, and FRIGGIN FUNNY!!!",
+		"VADER is not smart, handsome, nor funny.",
+		"At least it isn't a horrible book.",
+		"The plot was good, but the characters are uncompelling and the dialog is not great.",
+		"Make sure you :) or :D today!",
+		"Not bad at all",
+	};
+
+	// Iterate through the testcases and output the sentiment score, positive sentiment, neutral sentiment, and negative sentiment
+	for (int i = 0; i < sizeof(sentences) / sizeof(sentences[0]); i++) {
+		float *score = calculate_sentiment_score(data, sentences[i]);
+		printf("Sentence:\n%s\n", sentences[i]);
+		printf("Sentiment score: %f\n", *score);
+		printf("Positive sentiment: %f\n", *(score + 1));
+		printf("Neutral sentiment: %f\n", *(score + 2));
+		printf("Negative sentiment: %f\n\n", *(score + 3));
+		
+		// Free the memory allocated for the score
+		free(score);
+	}
+
+	// Free the memory allocated for the data
+	free(data);
+}
+\end{lstlisting}
+
+\subsection{Makefile}
+
+The Makefile is used to compile the program.
+
+\begin{lstlisting}[language=make]
+vader: main.c utility.h vaderSentiment.c
+	gcc -o vader main.c utility.h vaderSentiment.c -lm
+\end{lstlisting}
+
+\subsection{test.py}
+
+The test.py file is used to test the Python implementation of VADER on the same test cases.
+This uses the \texttt{NLTK} library to calculate the sentiment of the sentence.
+
+\begin{lstlisting}[language=python, basicstyle=\small]
+import nltk
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from nltk import tokenize
+
+nltk.download('vader_lexicon')
+
+sentences = [
+    "VADER is smart, handsome, and funny.",
+    "VADER is smart, handsome, and funny!",
+    "VADER is very smart, handsome, and funny.",
+    "VADER is VERY SMART, handsome, and FUNNY.",
+    "VADER is VERY SMART, handsome, and FUNNY!!!",
+    "VADER is VERY SMART, uber handsome, and FRIGGIN FUNNY!!!",
+    "VADER is not smart, handsome, nor funny.",
+    "At least it isn't a horrible book.",
+    "The plot was good, but the characters are uncompelling and the dialog is not great.",
+    "Make sure you :) or :D today!",
+    "Not bad at all",
+]
+
+# Output the vader sentiment analysis of the above sentences
+sid = SentimentIntensityAnalyzer()
+for sentence in sentences:
+    print(sentence)
+    ss = sid.polarity_scores(sentence)
+    for k in sorted(ss):
+        print('{0}: {1}, '.format(k, ss[k]), end='')
+    print("\n")
+\end{lstlisting}
 
 \end{document}
