@@ -16,7 +16,7 @@ void initialize_particles(Particle *particles, int NUM_PARTICLES, int NUM_VARIAB
 
 	for (int i = 0; i < NUM_PARTICLES; i++) {
 
-		// Allocate memory for particle
+		// Create particle
 		Particle particle;
 
 		// Allocate memory for position, velocity, and best_position
@@ -27,8 +27,7 @@ void initialize_particles(Particle *particles, int NUM_PARTICLES, int NUM_VARIAB
 		// Initialize position, velocity, and best_position
 		for (int j = 0; j < NUM_VARIABLES; j++) {
 			particle.position[j] = random_double(bounds[j].lowerBound, bounds[j].upperBound);
-			particle.velocity[j] = 0;
-			particle.best_position[j] = particle.position[j];
+			particle.velocity[j] = 0.0;
 		}
 
 		// Get the value of the particle's position
@@ -80,6 +79,7 @@ void update(Particle *particles, int NUM_PARTICLES, int NUM_VARIABLES, double *b
 		
 		// Update the global best value and best position if necessary
 		if (particles[i].value < global_best) {
+			global_best = particles[i].value;
 			for (int k = 0; k < NUM_VARIABLES; k++) {
 				best_position[k] = particles[i].position[k];
 			}
@@ -90,6 +90,9 @@ void update(Particle *particles, int NUM_PARTICLES, int NUM_VARIABLES, double *b
 double pso(ObjectiveFunction objective_function, int NUM_VARIABLES, Bound *bounds, int NUM_PARTICLES, int MAX_ITERATIONS, double *best_position) {
 
     // CODE: implement pso function here
+	
+	// Theshold equal to double precision
+	double threshold = 1e-6;
 	
 	// Allocate memory for particles
 	Particle *particles = malloc(NUM_PARTICLES * sizeof(Particle));
@@ -107,7 +110,20 @@ double pso(ObjectiveFunction objective_function, int NUM_VARIABLES, Bound *bound
 
 		// Update everything
 		update(particles, NUM_PARTICLES, NUM_VARIABLES, best_position, 0.7, 1.5, 1.5, objective_function, bounds);
+
+		// If below threshold, break
+		if (objective_function(NUM_VARIABLES, best_position) < threshold) {
+			break;
+		}
 	}
+
+	// Free memory
+	for (int i = 0; i < NUM_PARTICLES; i++) {
+		free(particles[i].position);
+		free(particles[i].velocity);
+		free(particles[i].best_position);
+	}
+	free(particles);
 
 	return objective_function(NUM_VARIABLES, best_position);
 }
