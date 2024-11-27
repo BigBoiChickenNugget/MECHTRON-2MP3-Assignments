@@ -25,5 +25,6 @@ typedef struct Particle {
 } Particle;
 
 void initialize_particles(Particle *particles, int NUM_PARTICLES, int NUM_VARIABLES, Bound *bounds, ObjectiveFunction objective_function);
+void update(Particle *particles, int NUM_PARTICLES, int NUM_VARIABLES, double *best_position, double w, double c1, double c2, ObjectiveFunction objective_function, Bound *bounds);
 
 #endif // UTILITY_H
